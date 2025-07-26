@@ -22,12 +22,13 @@
         font-size: 1.5em;
         z-index: 10;
         text-align: center;
+        padding: 1em;
       }
     </style>
   </head>
 
   <body>
-    <!-- Tap-to-play overlay -->
+    <!-- Tap-to-start overlay -->
     <div id="overlay">Tap to start experience</div>
 
     <a-scene>
@@ -40,30 +41,41 @@
           loop
           muted
           crossorigin="anonymous"
+          preload="auto"
         >
           <source src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4" type="video/mp4" />
         </video>
       </a-assets>
 
-      <a-videosphere id="videosphere" src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
-
-      <a-camera position="0 1.6 0"></a-camera>
+      <!-- Don't show anything until video plays -->
+      <a-entity id="videoContainer" visible="false">
+        <a-videosphere id="videosphere" src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
+        <a-camera position="0 1.6 0"></a-camera>
+      </a-entity>
     </a-scene>
 
     <script>
-      const video = document.getElementById('vrVideo');
       const overlay = document.getElementById('overlay');
+      const video = document.getElementById('vrVideo');
+      const videoContainer = document.getElementById('videoContainer');
 
-      function startExperience() {
-        // Try to play video
-        video.play().then(() => {
+      async function startExperience() {
+        try {
+          // Wait until video metadata is loaded
+          await new Promise(resolve => {
+            if (video.readyState >= 2) return resolve();
+            video.addEventListener('loadeddata', resolve, { once: true });
+          });
+
+          await video.play();
           overlay.style.display = 'none';
-        }).catch((err) => {
-          console.error('Autoplay failed:', err);
-        });
+          videoContainer.setAttribute('visible', 'true');
+        } catch (e) {
+          overlay.innerText = "⚠️ Could not start video. Tap again or check internet connection.";
+          console.error("Video play error:", e);
+        }
       }
 
-      // Wait for tap to start (iOS requirement)
       overlay.addEventListener('click', startExperience);
       overlay.addEventListener('touchend', startExperience);
     </script>
