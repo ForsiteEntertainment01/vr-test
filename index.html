@@ -25,34 +25,38 @@
     </a-scene>
 
     <script>
-      const video = document.getElementById('vrVideo');
-      const overlay = document.getElementById('overlay');
-      const videosphere = document.getElementById('videosphere');
+const video = document.getElementById('vrVideo');
+const overlay = document.getElementById('overlay');
+const videosphere = document.getElementById('videosphere');
 
-      // This function forces the video texture to update every frame
-      function updateVideoTexture() {
-        const mesh = videosphere.getObject3D('mesh');
-        if (mesh) {
-          if (mesh.material.map) {
-            mesh.material.map.needsUpdate = true;
-          }
-        }
-        requestAnimationFrame(updateVideoTexture);
-      }
+function updateVideoTexture() {
+  const mesh = videosphere.getObject3D('mesh');
+  if (mesh) {
+    if (mesh.material.map) {
+      mesh.material.map.needsUpdate = true;
+    }
+  }
+  requestAnimationFrame(updateVideoTexture);
+}
 
-      async function startExperience() {
-        try {
-          await video.play();
-          overlay.style.display = 'none';
-          updateVideoTexture();
-        } catch (e) {
-          overlay.innerText = "⚠️ Tap again to start video.";
-          console.error('Video play error:', e);
-        }
-      }
+async function startExperience() {
+  try {
+    // Attempt to play video and catch any issues
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      await playPromise;
+    }
+    overlay.style.display = 'none';
+    updateVideoTexture();
+    console.log('Video playback started successfully.');
+  } catch (error) {
+    console.error('Error attempting to play video:', error);
+    overlay.innerText = '⚠️ Could not start video. Tap again.';
+  }
+}
 
-      overlay.addEventListener('click', startExperience);
-      overlay.addEventListener('touchend', startExperience);
+overlay.addEventListener('click', startExperience);
+overlay.addEventListener('touchend', startExperience);
     </script>
   </body>
 </html>
