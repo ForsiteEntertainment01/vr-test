@@ -36,7 +36,7 @@
     <!-- Tap-to-start overlay -->
     <div id="overlay">Tap to start experience</div>
 
-    <!-- Hidden video in DOM so iOS acknowledges it -->
+    <!-- Hidden video in DOM for iOS interaction -->
     <video
       id="vrVideo"
       playsinline
@@ -52,8 +52,10 @@
     <!-- A-Frame Scene -->
     <a-scene embedded>
       <a-assets>
-        <video id="aframeVideo" src="#vrVideo"></video>
+        <!-- Reference the DOM video element by ID -->
+        <!-- No need to redeclare the <video> tag here -->
       </a-assets>
+
       <a-entity id="videoContainer" visible="false">
         <a-videosphere src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
         <a-camera position="0 1.6 0"></a-camera>
@@ -67,7 +69,7 @@
 
       async function startExperience() {
         try {
-          video.load(); // Force re-init on iOS
+          video.load();
           await new Promise(resolve => {
             if (video.readyState >= 2) return resolve();
             video.addEventListener('loadeddata', resolve, { once: true });
@@ -82,7 +84,6 @@
         }
       }
 
-      // iOS is picky — we trigger on multiple event types
       overlay.addEventListener('click', startExperience);
       overlay.addEventListener('touchstart', startExperience);
       overlay.addEventListener('touchend', startExperience);
