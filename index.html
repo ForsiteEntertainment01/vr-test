@@ -25,6 +25,7 @@
         padding: 1em;
         user-select: none;
         -webkit-user-select: none;
+        cursor: pointer;
       }
       video {
         display: none;
@@ -36,28 +37,25 @@
     <!-- Tap-to-start overlay -->
     <div id="overlay">Tap to start experience</div>
 
-    <!-- Hidden video in DOM for iOS interaction -->
+    <!-- Hidden video element (DOM-based for iOS) -->
     <video
       id="vrVideo"
       playsinline
       webkit-playsinline
-      preload="auto"
       muted
+      preload="auto"
       loop
       crossorigin="anonymous"
     >
       <source src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4" type="video/mp4" />
     </video>
 
-    <!-- A-Frame Scene -->
+    <!-- A-Frame scene -->
     <a-scene embedded>
-      <a-assets>
-        <!-- Reference the DOM video element by ID -->
-        <!-- No need to redeclare the <video> tag here -->
-      </a-assets>
+      <a-assets></a-assets>
 
       <a-entity id="videoContainer" visible="false">
-        <a-videosphere src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
+        <a-videosphere id="videoSphere" rotation="0 -90 0" stereo="top-bottom" src="#vrVideo"></a-videosphere>
         <a-camera position="0 1.6 0"></a-camera>
       </a-entity>
     </a-scene>
@@ -66,27 +64,41 @@
       const overlay = document.getElementById('overlay');
       const video = document.getElementById('vrVideo');
       const videoContainer = document.getElementById('videoContainer');
+      const videoSphere = document.getElementById('videoSphere');
 
       async function startExperience() {
         try {
-          video.load();
-          await new Promise(resolve => {
-            if (video.readyState >= 2) return resolve();
-            video.addEventListener('loadeddata', resolve, { once: true });
-          });
+          // Load video if not already loaded
+          if (video.readyState < 2) {
+            await new Promise(resolve => {
+              video.addEventListener('loadeddata', resolve, { once: true });
+              video.load();
+            });
+          }
 
+          // iOS Safari needs a gesture, and this must be direct from the click
           await video.play();
+
+          // Workaround: reassign video to material (forces A-Frame texture sync)
+          const mesh = videoSphere.getObject3D('mesh');
+          if (mesh) {
+            const videoTexture = new THREE.VideoTexture(video);
+            mesh.material.map = videoTexture;
+            mesh.material.needsUpdate = true;
+          }
+
+          // Now reveal A-Frame content
           overlay.style.display = 'none';
           videoContainer.setAttribute('visible', 'true');
-        } catch (e) {
-          overlay.innerText = "⚠️ Could not start video. Tap again.";
-          console.error("Video play error:", e);
+        } catch (err) {
+          console.error('Video failed to play:', err);
+          overlay.innerText = '⚠️ Could not start video. Tap again.';
         }
       }
 
-      overlay.addEventListener('click', startExperience);
-      overlay.addEventListener('touchstart', startExperience);
-      overlay.addEventListener('touchend', startExperience);
+      // Multiple touch/click handlers to maximize compatibility
+      overlay.addEventListener('click', startExperience, { once: true });
+      overlay.addEventListener('touchend', startExperience, { once: true });
     </script>
   </body>
 </html>
