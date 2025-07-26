@@ -1,104 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Stereoscopic 360 Video Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <style>
-      body {
-        margin: 0;
-        background: black;
-        overflow: hidden;
-      }
-      #overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: black;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5em;
-        z-index: 10;
-        text-align: center;
-        padding: 1em;
-        user-select: none;
-        -webkit-user-select: none;
-        cursor: pointer;
-      }
-      video {
-        display: none;
-      }
-    </style>
+    <title>Basic 360 Video Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   </head>
-
   <body>
-    <!-- Tap-to-start overlay -->
-    <div id="overlay">Tap to start experience</div>
+    <a-scene>
+      <a-assets>
+        <video
+          id="bgvideo"
+          src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous"
+        ></video>
+      </a-assets>
 
-    <!-- Hidden video element (DOM-based for iOS) -->
-    <video
-      id="vrVideo"
-      playsinline
-      webkit-playsinline
-      muted
-      preload="auto"
-      loop
-      crossorigin="anonymous"
-    >
-      <source src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4" type="video/mp4" />
-    </video>
-
-    <!-- A-Frame scene -->
-    <a-scene embedded>
-      <a-assets></a-assets>
-
-      <a-entity id="videoContainer" visible="false">
-        <a-videosphere id="videoSphere" rotation="0 -90 0" stereo="top-bottom" src="#vrVideo"></a-videosphere>
-        <a-camera position="0 1.6 0"></a-camera>
-      </a-entity>
+      <a-videosphere src="#bgvideo"></a-videosphere>
     </a-scene>
-
-    <script>
-      const overlay = document.getElementById('overlay');
-      const video = document.getElementById('vrVideo');
-      const videoContainer = document.getElementById('videoContainer');
-      const videoSphere = document.getElementById('videoSphere');
-
-      async function startExperience() {
-        try {
-          // Load video if not already loaded
-          if (video.readyState < 2) {
-            await new Promise(resolve => {
-              video.addEventListener('loadeddata', resolve, { once: true });
-              video.load();
-            });
-          }
-
-          // iOS Safari needs a gesture, and this must be direct from the click
-          await video.play();
-
-          // Workaround: reassign video to material (forces A-Frame texture sync)
-          const mesh = videoSphere.getObject3D('mesh');
-          if (mesh) {
-            const videoTexture = new THREE.VideoTexture(video);
-            mesh.material.map = videoTexture;
-            mesh.material.needsUpdate = true;
-          }
-
-          // Now reveal A-Frame content
-          overlay.style.display = 'none';
-          videoContainer.setAttribute('visible', 'true');
-        } catch (err) {
-          console.error('Video failed to play:', err);
-          overlay.innerText = '⚠️ Could not start video. Tap again.';
-        }
-      }
-
-      // Multiple touch/click handlers to maximize compatibility
-      overlay.addEventListener('click', startExperience, { once: true });
-      overlay.addEventListener('touchend', startExperience, { once: true });
-    </script>
   </body>
 </html>
