@@ -1,22 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <title>Stereoscopic 360° VR Video</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <title>Stereoscopic 360° VR Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   </head>
   <body>
-    <a-scene vr-mode-ui="enabled: true" embedded>
+    <a-scene>
       <a-assets>
-        <video id="vrVideo"
-               autoplay
-               loop
-               muted
-               playsinline
-               webkit-playsinline
-               crossorigin="anonymous">
-          <source src="https://kevin-vr-hosting.s3.amazonaws.com/360-bunny-test.mp4" type="video/mp4">
+        <video
+          id="vrVideo"
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+          muted
+          loop
+        >
+          <source
+            src="https://dl.dropboxusercontent.com/scl/fi/7s6m3h8xrzv2fbgzyhtks/360-bunny-test.mp4?rlkey=apdv0c4cdwbq8wd1doe5pmghk&raw=1"
+            type="video/mp4"
+          />
         </video>
       </a-assets>
 
@@ -25,12 +29,18 @@
     </a-scene>
 
     <script>
-      // Fix for mobile: play video on tap
-      document.body.addEventListener('click', () => {
-        const vid = document.getElementById('vrVideo');
-        if (vid.paused) {
-          vid.play().catch(e => console.log('Playback error:', e));
-        }
+      const vid = document.getElementById("vrVideo");
+
+      // Log if the video doesn't play
+      vid.addEventListener("error", () => {
+        console.error("VIDEO ERROR", vid.error);
+      });
+
+      // Attempt to play on interaction
+      document.body.addEventListener("click", () => {
+        vid.play()
+          .then(() => console.log("Video playback started"))
+          .catch((err) => console.error("Video playback error:", err));
       });
     </script>
   </body>
