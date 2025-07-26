@@ -23,6 +23,11 @@
         z-index: 10;
         text-align: center;
         padding: 1em;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      video {
+        display: none;
       }
     </style>
   </head>
@@ -31,25 +36,26 @@
     <!-- Tap-to-start overlay -->
     <div id="overlay">Tap to start experience</div>
 
-    <a-scene>
-      <a-assets>
-        <video
-          id="vrVideo"
-          playsinline
-          webkit-playsinline
-          autoplay
-          loop
-          muted
-          crossorigin="anonymous"
-          preload="auto"
-        >
-          <source src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4" type="video/mp4" />
-        </video>
-      </a-assets>
+    <!-- Hidden video in DOM so iOS acknowledges it -->
+    <video
+      id="vrVideo"
+      playsinline
+      webkit-playsinline
+      preload="auto"
+      muted
+      loop
+      crossorigin="anonymous"
+    >
+      <source src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER_ForyoutubefromMediaEncoder.mp4" type="video/mp4" />
+    </video>
 
-      <!-- Don't show anything until video plays -->
+    <!-- A-Frame Scene -->
+    <a-scene embedded>
+      <a-assets>
+        <video id="aframeVideo" src="#vrVideo"></video>
+      </a-assets>
       <a-entity id="videoContainer" visible="false">
-        <a-videosphere id="videosphere" src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
+        <a-videosphere src="#vrVideo" stereo="top-bottom" rotation="0 -90 0"></a-videosphere>
         <a-camera position="0 1.6 0"></a-camera>
       </a-entity>
     </a-scene>
@@ -61,7 +67,7 @@
 
       async function startExperience() {
         try {
-          // Wait until video metadata is loaded
+          video.load(); // Force re-init on iOS
           await new Promise(resolve => {
             if (video.readyState >= 2) return resolve();
             video.addEventListener('loadeddata', resolve, { once: true });
@@ -71,12 +77,14 @@
           overlay.style.display = 'none';
           videoContainer.setAttribute('visible', 'true');
         } catch (e) {
-          overlay.innerText = "⚠️ Could not start video. Tap again or check internet connection.";
+          overlay.innerText = "⚠️ Could not start video. Tap again.";
           console.error("Video play error:", e);
         }
       }
 
+      // iOS is picky — we trigger on multiple event types
       overlay.addEventListener('click', startExperience);
+      overlay.addEventListener('touchstart', startExperience);
       overlay.addEventListener('touchend', startExperience);
     </script>
   </body>
