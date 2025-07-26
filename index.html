@@ -24,39 +24,44 @@
       <a-camera position="0 1.6 0"></a-camera>
     </a-scene>
 
-    <script>
-const video = document.getElementById('vrVideo');
-const overlay = document.getElementById('overlay');
-const videosphere = document.getElementById('videosphere');
+<script>
+  const video = document.getElementById('vrVideo');
+  const overlay = document.getElementById('overlay');
+  const videosphere = document.getElementById('videosphere');
 
-function updateVideoTexture() {
-  const mesh = videosphere.getObject3D('mesh');
-  if (mesh) {
-    if (mesh.material.map) {
-      mesh.material.map.needsUpdate = true;
+  function updateVideoTexture() {
+    const mesh = videosphere.getObject3D('mesh');
+    if (mesh && video.readyState >= 2) {
+      const texture = new THREE.VideoTexture(video);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.format = THREE.RGBFormat;
+
+      mesh.material.map = texture;
+      mesh.material.needsUpdate = true;
+
+      console.log('Video texture applied to mesh.');
+    } else {
+      console.warn('Mesh or video not ready. Retrying...');
+      setTimeout(updateVideoTexture, 500);
     }
   }
-  requestAnimationFrame(updateVideoTexture);
-}
 
-async function startExperience() {
-  try {
-    // Attempt to play video and catch any issues
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      await playPromise;
+  async function startExperience() {
+    try {
+      await video.play();
+      overlay.style.display = 'none';
+      updateVideoTexture();
+      console.log('Video playback started successfully.');
+    } catch (error) {
+      console.error('Error attempting to play video:', error);
+      overlay.innerText = '⚠️ Could not start video. Tap again.';
     }
-    overlay.style.display = 'none';
-    updateVideoTexture();
-    console.log('Video playback started successfully.');
-  } catch (error) {
-    console.error('Error attempting to play video:', error);
-    overlay.innerText = '⚠️ Could not start video. Tap again.';
   }
-}
 
-overlay.addEventListener('click', startExperience);
-overlay.addEventListener('touchend', startExperience);
-    </script>
+  overlay.addEventListener('click', startExperience);
+  overlay.addEventListener('touchend', startExperience);
+</script>
+
   </body>
 </html>
