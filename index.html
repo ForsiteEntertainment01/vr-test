@@ -47,9 +47,21 @@
     <!-- A-FRAME SCENE -->
     <a-scene>
       <a-assets>
-        <video id="videoAsset" crossorigin="anonymous" webkit-playsinline playsinline loop muted></video>
+        <video id="videoAsset" crossorigin="anonymous" playsinline webkit-playsinline muted loop></video>
       </a-assets>
-      <a-videosphere id="videosphere" src="#videoAsset"></a-videosphere>
+
+      <!-- Use a-video with spherical projection -->
+      <a-video
+        id="videoScreen"
+        src="#videoAsset"
+        width="16"
+        height="9"
+        position="0 1.6 -4"
+        rotation="0 0 0"
+        projection="360"
+      ></a-video>
+
+      <a-camera wasd-controls-enabled="false" look-controls="true"></a-camera>
     </a-scene>
 
     <!-- JS TO INITIATE VIDEO -->
@@ -60,16 +72,9 @@
 
       startButton.addEventListener('click', async () => {
         try {
-          // Required for iOS: set the source on user interaction
           videoAsset.src = video.src;
-
-          // Try to play the original hidden video (to cache)
           await video.play();
-
-          // Sync asset video to match playback
-          videoAsset.srcObject = video.captureStream();
           await videoAsset.play();
-
           startButton.style.display = 'none';
           console.log('✅ Video started');
         } catch (err) {
