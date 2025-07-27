@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>360 Video VR Viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>360 Video Viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
       body {
@@ -11,75 +11,70 @@
         overflow: hidden;
         background: black;
       }
+
       #startButton {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         padding: 1em 2em;
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.8);
         color: white;
         font-size: 1.2em;
         border: 2px solid white;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
-        z-index: 999;
+        z-index: 10;
       }
     </style>
   </head>
+
   <body>
-    <!-- START BUTTON -->
+    <!-- Start Button -->
     <div id="startButton">Tap to Start Experience</div>
 
-    <!-- VIDEO ELEMENT -->
+    <!-- Hidden video element -->
     <video
       id="video"
       src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER.mp4"
       crossorigin="anonymous"
       playsinline
       webkit-playsinline
-      preload="auto"
       muted
       loop
+      preload="auto"
       style="display: none"
     ></video>
 
-    <!-- A-FRAME SCENE -->
+    <!-- A-Frame Scene -->
     <a-scene>
       <a-assets>
         <video id="videoAsset" crossorigin="anonymous" playsinline webkit-playsinline muted loop></video>
       </a-assets>
 
-      <!-- Use a-video with spherical projection -->
-      <a-video
-        id="videoScreen"
-        src="#videoAsset"
-        width="16"
-        height="9"
-        position="0 1.6 -4"
-        rotation="0 0 0"
-        projection="360"
-      ></a-video>
+      <a-videosphere src="#videoAsset" rotation="0 -90 0"></a-videosphere>
 
-      <a-camera wasd-controls-enabled="false" look-controls="true"></a-camera>
+      <a-camera></a-camera>
     </a-scene>
 
-    <!-- JS TO INITIATE VIDEO -->
     <script>
-      const video = document.getElementById('video');
-      const videoAsset = document.getElementById('videoAsset');
-      const startButton = document.getElementById('startButton');
+      const startButton = document.getElementById("startButton");
+      const video = document.getElementById("video");
+      const videoAsset = document.getElementById("videoAsset");
 
-      startButton.addEventListener('click', async () => {
+      startButton.addEventListener("click", async () => {
         try {
           videoAsset.src = video.src;
+
+          // Required for iOS: trigger video loading via user interaction
           await video.play();
-          await videoAsset.play();
-          startButton.style.display = 'none';
-          console.log('✅ Video started');
+          videoAsset.play();
+
+          startButton.style.display = "none";
+          console.log("✅ Video started");
         } catch (err) {
-          console.error('❌ Video failed to start:', err);
-          startButton.textContent = '⚠️ Tap again to start video';
+          console.error("❌ Error starting video:", err);
+          startButton.innerText = "⚠️ Tap again to start video";
         }
       });
     </script>
