@@ -24,12 +24,25 @@
         cursor: pointer;
         z-index: 9999;
         text-align: center;
+        padding: 2em;
+      }
+
+      #spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.2em;
+        z-index: 9998;
+        display: none;
       }
     </style>
   </head>
   <body>
     <!-- Start Overlay -->
     <div id="overlay">Tap to Start Experience</div>
+    <div id="spinner">🎥 Loading video...</div>
 
     <!-- A-Frame Scene -->
     <a-scene background="color: black">
@@ -37,11 +50,11 @@
         <video
           id="video"
           playsinline
-          crossorigin="anonymous"
           webkit-playsinline
           preload="auto"
           muted
           loop
+          crossorigin="anonymous"
         >
           <source
             src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER.mp4"
@@ -50,7 +63,6 @@
         </video>
       </a-assets>
 
-      <!-- Video Sphere (initially hidden) -->
       <a-entity
         id="videoSphere"
         geometry="primitive: sphere; radius: 5000; segmentsWidth: 64; segmentsHeight: 64"
@@ -58,31 +70,14 @@
         visible="false"
       ></a-entity>
 
-      <!-- Camera -->
       <a-camera position="0 0 0"></a-camera>
     </a-scene>
 
-    <!-- JS Logic -->
+    <!-- Script -->
     <script>
       const overlay = document.getElementById("overlay");
+      const spinner = document.getElementById("spinner");
       const video = document.getElementById("video");
       const videoSphere = document.getElementById("videoSphere");
 
-      overlay.addEventListener("click", () => {
-        video.play().then(() => {
-          overlay.style.display = "none";
-
-          // Set the video as a texture once playback starts
-          setTimeout(() => {
-            videoSphere.setAttribute("material", "shader: flat; src: #video; side: back");
-            videoSphere.setAttribute("visible", "true");
-            console.log("✅ Video playback started and texture applied.");
-          }, 500);
-        }).catch((err) => {
-          console.error("⚠️ Video play failed:", err);
-          overlay.innerText = "⚠️ Tap again to start video";
-        });
-      });
-    </script>
-  </body>
-</html>
+      // Once video is loaded enough to play through, enable it as texture
