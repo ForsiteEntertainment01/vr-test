@@ -17,12 +17,13 @@
         left: 50%;
         transform: translate(-50%, -50%);
         padding: 1em 2em;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
         font-size: 1.2em;
         border: 2px solid white;
+        border-radius: 8px;
         cursor: pointer;
-        z-index: 10;
+        z-index: 999;
       }
     </style>
   </head>
@@ -46,24 +47,34 @@
     <!-- A-FRAME SCENE -->
     <a-scene>
       <a-assets>
-        <video id="videoAsset" src="" crossorigin="anonymous"></video>
+        <video id="videoAsset" crossorigin="anonymous" webkit-playsinline playsinline loop muted></video>
       </a-assets>
-      <a-videosphere id="videosphere" src="#video"></a-videosphere>
+      <a-videosphere id="videosphere" src="#videoAsset"></a-videosphere>
     </a-scene>
 
-    <!-- JS TO START VIDEO -->
+    <!-- JS TO INITIATE VIDEO -->
     <script>
-      const video = document.getElementById("video");
-      const startButton = document.getElementById("startButton");
+      const video = document.getElementById('video');
+      const videoAsset = document.getElementById('videoAsset');
+      const startButton = document.getElementById('startButton');
 
-      startButton.addEventListener("click", async () => {
+      startButton.addEventListener('click', async () => {
         try {
+          // Required for iOS: set the source on user interaction
+          videoAsset.src = video.src;
+
+          // Try to play the original hidden video (to cache)
           await video.play();
-          console.log("✅ Video playback started successfully.");
-          startButton.style.display = "none";
+
+          // Sync asset video to match playback
+          videoAsset.srcObject = video.captureStream();
+          await videoAsset.play();
+
+          startButton.style.display = 'none';
+          console.log('✅ Video started');
         } catch (err) {
-          console.error("❌ Video playback failed:", err);
-          startButton.textContent = "⚠️ Tap again to start video";
+          console.error('❌ Video failed to start:', err);
+          startButton.textContent = '⚠️ Tap again to start video';
         }
       });
     </script>
