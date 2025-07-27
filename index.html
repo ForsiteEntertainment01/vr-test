@@ -8,8 +8,8 @@
     <style>
       body {
         margin: 0;
-        overflow: hidden;
         background: black;
+        overflow: hidden;
       }
 
       #startButton {
@@ -17,9 +17,9 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        padding: 1em 2em;
         background: rgba(0, 0, 0, 0.8);
         color: white;
+        padding: 1em 2em;
         font-size: 1.2em;
         border: 2px solid white;
         border-radius: 10px;
@@ -28,12 +28,11 @@
       }
     </style>
   </head>
-
   <body>
-    <!-- Start Button -->
+    <!-- Start button (required for iOS interaction) -->
     <div id="startButton">Tap to Start Experience</div>
 
-    <!-- Hidden video element -->
+    <!-- Video element -->
     <video
       id="video"
       src="https://vr-streaming-hosting-test.s3.us-east-2.amazonaws.com/HIGH_RES_UNDERWATER.mp4"
@@ -46,35 +45,45 @@
       style="display: none"
     ></video>
 
-    <!-- A-Frame Scene -->
+    <!-- A-Frame scene -->
     <a-scene>
       <a-assets>
-        <video id="videoAsset" crossorigin="anonymous" playsinline webkit-playsinline muted loop></video>
+        <video
+          id="video360"
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+          muted
+          loop
+        ></video>
       </a-assets>
 
-      <a-videosphere src="#videoAsset" rotation="0 -90 0"></a-videosphere>
+      <!-- 360 video sphere -->
+      <a-videosphere id="sphere" src="#video360" rotation="0 -90 0"></a-videosphere>
 
-      <a-camera></a-camera>
+      <!-- Camera -->
+      <a-camera position="0 1.6 0" look-controls="enabled: true"></a-camera>
     </a-scene>
 
     <script>
-      const startButton = document.getElementById("startButton");
-      const video = document.getElementById("video");
-      const videoAsset = document.getElementById("videoAsset");
+      const startButton = document.getElementById('startButton');
+      const hiddenVideo = document.getElementById('video');
+      const videoAsset = document.getElementById('video360');
 
-      startButton.addEventListener("click", async () => {
+      startButton.addEventListener('click', async () => {
         try {
-          videoAsset.src = video.src;
+          // Set video source dynamically after user gesture
+          videoAsset.src = hiddenVideo.src;
 
-          // Required for iOS: trigger video loading via user interaction
-          await video.play();
-          videoAsset.play();
+          // Play both to ensure texture updates (some platforms prefer hidden playback)
+          await hiddenVideo.play();
+          await videoAsset.play();
 
-          startButton.style.display = "none";
-          console.log("✅ Video started");
+          startButton.style.display = 'none';
+          console.log('✅ Video started on both desktop and iOS.');
         } catch (err) {
-          console.error("❌ Error starting video:", err);
-          startButton.innerText = "⚠️ Tap again to start video";
+          console.error('❌ Video failed to play:', err);
+          startButton.innerText = '⚠️ Tap again to start video';
         }
       });
     </script>
